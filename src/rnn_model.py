@@ -9,7 +9,7 @@ warnings.filterwarnings("ignore")
 
 # inspired by https://docs.pytorch.org/tutorials/intermediate/seq2seq_translation_tutorial.html
 class BHW2RNNDecoder(nn.Module):
-    def __init__(self, hidden_dim, dataset, rnn_type = nn.RNN, max_seq_len : int = 128, device : Union[torch.device, str] = "cpu"):
+    def __init__(self, hidden_dim, dataset, rnn_type = nn.GRU, max_seq_len : int = 128, device : Union[torch.device, str] = "cpu"):
         super().__init__()
         self.hidden_dim = hidden_dim
         self.device = device
@@ -38,13 +38,15 @@ class BHW2RNNDecoder(nn.Module):
         while len(generated_seq) < self.max_seq_len and generated_seq[-1] != self.dataset.eos_token:
             idx = torch.LongTensor((generated_seq[-1], )).to(self.device)
             embed = self.embeddings(idx)
-            logits, decoder_hidden = self.rnn(embed, decoder_hidden)
+            decoder_output, decoder_hidden = self.rnn(embed, decoder_hidden)
+            logits = self.linear_head(decoder_output)
             yet_another_token = logits.argmax(dim=1)
             generated_seq.append(yet_another_token.item())
         return generated_seq
 
+
 class BHW2RNNEncoder(nn.Module):
-    def __init__(self, hidden_dim, dataset, rnn_type = nn.RNN):
+    def __init__(self, hidden_dim, dataset, rnn_type = nn.GRU):
         super().__init__()
         self.hidden_dim = hidden_dim
         self.dataset = dataset

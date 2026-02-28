@@ -1,6 +1,9 @@
 from dataset import BHW2Dataset, BHW2Allin1Dataset
 from torch.utils.data import DataLoader
-
+import torchtext
+torchtext.disable_torchtext_deprecation_warning()
+import warnings
+warnings.filterwarnings("ignore")
 
 
 def create_dataset(split : str, path_to_data="../data"):
