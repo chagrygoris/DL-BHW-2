@@ -39,7 +39,7 @@ class BHW2Dataset(Dataset):
     def __len__(self):
         if self.sanity_checker:
             return 128
-        return 128
+        # return 128
         return len(self.texts)
 
     def __getitem__(self, index):
