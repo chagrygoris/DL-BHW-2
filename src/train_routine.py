@@ -15,9 +15,9 @@ def create_dataset(split : str, path_to_data="../data"):
 
 
 def create_dataloaders(path_to_data="../data"):
-    train_set = create_dataset("train")
-    val_set = create_dataset("val")
-    test_set = create_dataset("test1")
+    train_set = create_dataset("train", path_to_data=path_to_data)
+    val_set = create_dataset("val", path_to_data=path_to_data)
+    test_set = create_dataset("test1", path_to_data=path_to_data)
     train_loader = DataLoader(train_set, batch_size=32, shuffle=True, num_workers=4, pin_memory=True)
     val_loader = DataLoader(val_set, batch_size=32, shuffle=False, num_workers=4, pin_memory=True)
     test_loader = DataLoader(test_set, batch_size=32, shuffle=False, num_workers=4, pin_memory=True)
