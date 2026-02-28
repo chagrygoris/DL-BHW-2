@@ -1,0 +1,6 @@
+data/
+.venv/
+*.lock
+.vscode/
+__pycache__/
+.DS_Store
