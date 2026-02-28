@@ -5,6 +5,8 @@ from typing import List
 import torch
 import torchtext
 torchtext.disable_torchtext_deprecation_warning()
+import warnings
+warnings.filterwarnings("ignore")
 
 # https://docs.pytorch.org/text/stable/vocab.html#build-vocab-from-iterator
 def yield_tokens(file_path):
@@ -25,6 +27,7 @@ class BHW2Dataset(Dataset):
         self.pad_token = self.vocab["<pad>"]
         self.unk_token = self.vocab["<unk>"]
         self.bos_token = self.vocab["<bos>"]
+        self.eos_token = self.vocab["<eos>"]
         self.vocab.set_default_index(0)
 
     def token2idx(self, tokens : List[str]):
@@ -36,6 +39,7 @@ class BHW2Dataset(Dataset):
     def __len__(self):
         if self.sanity_checker:
             return 128
+        # return 128
         return len(self.texts)
 
     def __getitem__(self, index):
