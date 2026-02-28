@@ -22,13 +22,13 @@ class BHW2Dataset(Dataset):
         self.sanity_checker = sanity_checker
         self.max_seq_len = max_seq_len
         self.texts = list(yield_tokens(file_path))
-        self.vocab = build_vocab_from_iterator(yield_tokens(file_path), specials=["<unk>", "<pad>", "<bos>", "<eos>"], min_freq=5)
+        self.vocab = build_vocab_from_iterator(yield_tokens(file_path), specials=["<unk>", "<pad>", "<bos>", "<eos>"], max_tokens=50000)
         self.vocab_size = len(self.vocab)
         self.pad_token = self.vocab["<pad>"]
         self.unk_token = self.vocab["<unk>"]
         self.bos_token = self.vocab["<bos>"]
         self.eos_token = self.vocab["<eos>"]
-        self.vocab.set_default_index(0)
+        self.vocab.set_default_index(self.unk_token)
 
     def token2idx(self, tokens : List[str]):
         return self.vocab.lookup_indices(tokens)
