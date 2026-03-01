@@ -17,7 +17,7 @@ def create_dataset(split : str, path_to_data="../data"):
     return BHW2Allin1Dataset(de_dataset, en_dataset)
 
 
-def create_dataloaders(path_to_data="../data"):
+def create_dataloaders(path_to_data="../data", batch_size=32):
     train_set = create_dataset("train", path_to_data=path_to_data)
     val_set = create_dataset("val", path_to_data=path_to_data)
     test_set = create_dataset("test1", path_to_data=path_to_data)

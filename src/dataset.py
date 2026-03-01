@@ -16,7 +16,7 @@ def yield_tokens(file_path):
 
 
 class BHW2Dataset(Dataset):
-    def __init__(self, file_path, max_seq_len=128, sanity_checker=False):
+    def __init__(self, file_path, max_seq_len=10, sanity_checker=False):
         super().__init__()
         self.file_path = file_path
         self.sanity_checker = sanity_checker
@@ -39,11 +39,13 @@ class BHW2Dataset(Dataset):
     def __len__(self):
         if self.sanity_checker:
             return 128
-        return 128
+        # return 128
         return len(self.texts)
 
     def __getitem__(self, index):
         out = torch.full((self.max_seq_len, ), fill_value=self.pad_token)
+        if len(self.texts[index]) > self.max_seq_len - 2:
+            self.texts[index] = self.texts[index][:self.max_seq_len - 2]
         tokens = ["<bos>"] + self.texts[index] + ["<eos>"]
         seq_len = len(tokens)
         tokens = self.token2idx(tokens)

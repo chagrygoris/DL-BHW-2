@@ -32,7 +32,7 @@ class DecoderRNN(nn.Module):
         self.out = nn.Linear(hidden_size, output_size)
         self.device = device
 
-    def forward(self, encoder_outputs, encoder_hidden, target_tensor=None):
+    def forward(self, encoder_outputs, encoder_hidden, target_tensor=None, teacher_forcing_rate=0.5):
         batch_size = encoder_outputs.size(0)
         decoder_input = torch.empty(batch_size, 1, dtype=torch.long, device=self.device).fill_(2)
         decoder_hidden = encoder_hidden
@@ -42,7 +42,7 @@ class DecoderRNN(nn.Module):
             decoder_output, decoder_hidden  = self.forward_step(decoder_input, decoder_hidden)
             decoder_outputs.append(decoder_output)
 
-            if target_tensor is not None:
+            if target_tensor is not None and torch.rand((1,)) < teacher_forcing_rate:
                 # Teacher forcing: Feed the target as the next input
                 decoder_input = target_tensor[:, i].unsqueeze(1) # Teacher forcing
             else:
@@ -88,7 +88,7 @@ class AttnDecoderRNN(nn.Module):
         self.dropout = nn.Dropout(dropout_p)
         self.device = device
 
-    def forward(self, encoder_outputs, encoder_hidden, target_tensor=None):
+    def forward(self, encoder_outputs, encoder_hidden, target_tensor=None, teacher_forcing_rate=0.5):
         batch_size = encoder_outputs.size(0)
         decoder_input = torch.empty(batch_size, 1, dtype=torch.long, device=self.device).fill_(BOS_TOKEN)
         decoder_hidden = encoder_hidden
@@ -102,7 +102,7 @@ class AttnDecoderRNN(nn.Module):
             decoder_outputs.append(decoder_output)
             attentions.append(attn_weights)
 
-            if target_tensor is not None:
+            if target_tensor is not None and torch.rand((1,)) < teacher_forcing_rate:
                 # Teacher forcing: Feed the target as the next input
                 decoder_input = target_tensor[:, i].unsqueeze(1) # Teacher forcing
             else:
