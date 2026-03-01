@@ -1,10 +1,10 @@
+import torchtext
+torchtext.disable_torchtext_deprecation_warning()
 import io
 from torchtext.vocab import build_vocab_from_iterator
 from torch.utils.data import Dataset
 from typing import List
 import torch
-import torchtext
-torchtext.disable_torchtext_deprecation_warning()
 import warnings
 warnings.filterwarnings("ignore")
 
