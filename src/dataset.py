@@ -16,13 +16,13 @@ def yield_tokens(file_path):
 
 
 class BHW2Dataset(Dataset):
-    def __init__(self, file_path, max_seq_len=10, sanity_checker=False):
+    def __init__(self, file_path, max_seq_len=35, sanity_checker=False):
         super().__init__()
         self.file_path = file_path
         self.sanity_checker = sanity_checker
         self.max_seq_len = max_seq_len
         self.texts = list(yield_tokens(file_path))
-        self.vocab = build_vocab_from_iterator(yield_tokens(file_path), specials=["<unk>", "<pad>", "<bos>", "<eos>"], max_tokens=50000)
+        self.vocab = build_vocab_from_iterator(yield_tokens(file_path), specials=["<unk>", "<pad>", "<bos>", "<eos>"], min_freq=5)
         self.vocab_size = len(self.vocab)
         self.pad_token = self.vocab["<pad>"]
         self.unk_token = self.vocab["<unk>"]

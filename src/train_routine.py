@@ -21,6 +21,10 @@ def create_dataloaders(path_to_data="../data", batch_size=32):
     train_set = create_dataset("train", path_to_data=path_to_data)
     val_set = create_dataset("val", path_to_data=path_to_data)
     test_set = create_dataset("test1", path_to_data=path_to_data)
+    val_set.en.vocab, val_set.en.vocab_size = train_set.en.vocab, train_set.en.vocab_size
+    val_set.de.vocab, val_set.de.vocab_size = train_set.de.vocab, train_set.de.vocab_size
+    test_set.vocab = train_set.de.vocab
+    test_set.vocab_size = train_set.de.vocab_size
     train_loader = DataLoader(train_set, batch_size=32, shuffle=True, num_workers=4, pin_memory=True)
     val_loader = DataLoader(val_set, batch_size=32, shuffle=False, num_workers=4, pin_memory=True)
     test_loader = DataLoader(test_set, batch_size=32, shuffle=False, num_workers=4, pin_memory=True)
