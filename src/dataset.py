@@ -16,19 +16,26 @@ def yield_tokens(file_path):
 
 
 class BHW2Dataset(Dataset):
-    def __init__(self, file_path, max_seq_len=35, sanity_checker=False):
+    def __init__(self, file_path, max_seq_len=35, sanity_checker=False, device=torch.device("cpu"), vocab=None):
         super().__init__()
         self.file_path = file_path
         self.sanity_checker = sanity_checker
         self.max_seq_len = max_seq_len
         self.texts = list(yield_tokens(file_path))
-        self.vocab = build_vocab_from_iterator(yield_tokens(file_path), specials=["<unk>", "<pad>", "<bos>", "<eos>"], min_freq=5)
+        if vocab is None:
+            self.vocab = build_vocab_from_iterator(yield_tokens(file_path), specials=["<unk>", "<pad>", "<bos>", "<eos>"], min_freq=5)
+        else:
+            self.vocab = vocab
         self.vocab_size = len(self.vocab)
         self.pad_token = self.vocab["<pad>"]
         self.unk_token = self.vocab["<unk>"]
         self.bos_token = self.vocab["<bos>"]
         self.eos_token = self.vocab["<eos>"]
         self.vocab.set_default_index(self.unk_token)
+        data_with_lens = [self.getitem(i) for i in range(len(self.texts))]
+        print(data_with_lens[0])
+        self.data = torch.cat([x.unsqueeze(0) for x, _ in data_with_lens], dim=0).to(device)
+        self.lens = torch.LongTensor([x for _, x in data_with_lens]).to(device)
 
     def token2idx(self, tokens : List[str]):
         return self.vocab.lookup_indices(tokens)
@@ -43,6 +50,9 @@ class BHW2Dataset(Dataset):
         return len(self.texts)
 
     def __getitem__(self, index):
+        return self.data[index], self.lens[index]
+
+    def getitem(self, index):
         out = torch.full((self.max_seq_len, ), fill_value=self.pad_token)
         if len(self.texts[index]) > self.max_seq_len - 2:
             self.texts[index] = self.texts[index][:self.max_seq_len - 2]

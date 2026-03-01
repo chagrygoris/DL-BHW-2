@@ -4,30 +4,27 @@ import torchtext
 torchtext.disable_torchtext_deprecation_warning()
 import warnings
 warnings.filterwarnings("ignore")
+import torch
 
 
-def create_dataset(split : str, path_to_data="../data"):
+def create_dataset(split : str, path_to_data="../data", device=torch.device("cpu"), en_vocab=None, de_vocab=None):
     de = "{}/{}.de-en.de".format(path_to_data, split)
-    de_dataset = BHW2Dataset(de)
+    de_dataset = BHW2Dataset(de, device=device, vocab=de_vocab)
     if split == "test1":
         return de_dataset
 
     en = "{}/{}.de-en.en".format(path_to_data, split)
-    en_dataset = BHW2Dataset(en)
+    en_dataset = BHW2Dataset(en, device=device, vocab=en_vocab)
     return BHW2Allin1Dataset(de_dataset, en_dataset)
 
 
-def create_dataloaders(path_to_data="../data", batch_size=32):
-    train_set = create_dataset("train", path_to_data=path_to_data)
-    val_set = create_dataset("val", path_to_data=path_to_data)
-    test_set = create_dataset("test1", path_to_data=path_to_data)
-    val_set.en.vocab, val_set.en.vocab_size = train_set.en.vocab, train_set.en.vocab_size
-    val_set.de.vocab, val_set.de.vocab_size = train_set.de.vocab, train_set.de.vocab_size
-    test_set.vocab = train_set.de.vocab
-    test_set.vocab_size = train_set.de.vocab_size
-    train_loader = DataLoader(train_set, batch_size=32, shuffle=True, num_workers=4, pin_memory=True)
-    val_loader = DataLoader(val_set, batch_size=32, shuffle=False, num_workers=4, pin_memory=True)
-    test_loader = DataLoader(test_set, batch_size=32, shuffle=False, num_workers=4, pin_memory=True)
+def create_dataloaders(path_to_data="../data", batch_size=32, device=torch.device("cpu")):
+    train_set = create_dataset("train", path_to_data=path_to_data, device=device)
+    val_set = create_dataset("val", path_to_data=path_to_data, device=device, en_vocab=train_set.en.vocab, de_vocab=train_set.de.vocab)
+    test_set = create_dataset("test1", path_to_data=path_to_data, device=device, en_vocab=train_set.en.vocab, de_vocab=train_set.de.vocab)
+    train_loader = DataLoader(train_set, batch_size=32, shuffle=True, num_workers=0, pin_memory=False)
+    val_loader = DataLoader(val_set, batch_size=32, shuffle=False, num_workers=0, pin_memory=False)
+    test_loader = DataLoader(test_set, batch_size=32, shuffle=False, num_workers=0, pin_memory=False)
     return train_loader, val_loader, test_loader
 
 
