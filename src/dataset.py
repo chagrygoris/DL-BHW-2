@@ -16,7 +16,7 @@ def yield_tokens(file_path):
 
 
 class BHW2Dataset(Dataset):
-    def __init__(self, file_path, max_seq_len=35, sanity_checker=False, device=torch.device("cpu"), vocab=None):
+    def __init__(self, file_path, max_seq_len=80, sanity_checker=False, device=torch.device("cpu"), vocab=None):
         super().__init__()
         self.file_path = file_path
         self.sanity_checker = sanity_checker
