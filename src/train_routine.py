@@ -22,9 +22,9 @@ def create_dataloaders(path_to_data="../data", batch_size=32, device=torch.devic
     train_set = create_dataset("train", path_to_data=path_to_data, device=device)
     val_set = create_dataset("val", path_to_data=path_to_data, device=device, en_vocab=train_set.en.vocab, de_vocab=train_set.de.vocab)
     test_set = create_dataset("test1", path_to_data=path_to_data, device=device, en_vocab=train_set.en.vocab, de_vocab=train_set.de.vocab)
-    train_loader = DataLoader(train_set, batch_size=32, shuffle=True, num_workers=0, pin_memory=False)
-    val_loader = DataLoader(val_set, batch_size=32, shuffle=False, num_workers=0, pin_memory=False)
-    test_loader = DataLoader(test_set, batch_size=32, shuffle=False, num_workers=0, pin_memory=False)
+    train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=0, pin_memory=False)
+    val_loader = DataLoader(val_set, batch_size=batch_size, shuffle=False, num_workers=0, pin_memory=False)
+    test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=False, num_workers=0, pin_memory=False)
     return train_loader, val_loader, test_loader
 
 
