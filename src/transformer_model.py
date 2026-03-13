@@ -158,8 +158,8 @@ class Transformer(nn.Module):
         Returns:
             A tensor representing the output of the projection layer.
         """
-        # return self.projection_layer(x)
-        return torch.log_softmax(x @ self.tgt_embed.embedding.weight.T, dim=-1)
+        return self.projection_layer(x)
+        # return torch.log_softmax(x @ self.tgt_embed.embedding.weight.T, dim=-1)
 
 def build_transformer(src_vocab_size: int, tgt_vocab_size: int, src_seq_len: int, tgt_seq_len: int, d_model: int = 512, N: int = 6, h: int = 8, dropout: float = 0.1, d_ff: int = 2048) -> Transformer:
     """Build a transformer model.
