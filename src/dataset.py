@@ -23,7 +23,7 @@ class BHW2Dataset(Dataset):
         self.max_seq_len = max_seq_len
         self.texts = list(yield_tokens(file_path))
         if vocab is None:
-            self.vocab = build_vocab_from_iterator(yield_tokens(file_path), specials=["<unk>", "<pad>", "<bos>", "<eos>"], min_freq=1)
+            self.vocab = build_vocab_from_iterator(yield_tokens(file_path), specials=["<unk>", "<pad>", "<bos>", "<eos>"], min_freq=2)
         else:
             self.vocab = vocab
         self.vocab_size = len(self.vocab)
@@ -33,7 +33,6 @@ class BHW2Dataset(Dataset):
         self.eos_token = self.vocab["<eos>"]
         self.vocab.set_default_index(self.unk_token)
         data_with_lens = [self.getitem(i) for i in range(len(self.texts))]
-        print(data_with_lens[0])
         self.data = torch.cat([x.unsqueeze(0) for x, _ in data_with_lens], dim=0).to(device)
         self.lens = torch.LongTensor([x for _, x in data_with_lens]).to(device)
 
