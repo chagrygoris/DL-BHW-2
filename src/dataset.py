@@ -23,7 +23,7 @@ class BHW2Dataset(Dataset):
         self.max_seq_len = max_seq_len
         self.texts = list(yield_tokens(file_path))
         if vocab is None:
-            self.vocab = build_vocab_from_iterator(yield_tokens(file_path), specials=["<unk>", "<pad>", "<bos>", "<eos>"], min_freq=2)
+            self.vocab = build_vocab_from_iterator(yield_tokens(file_path), specials=["<unk>", "<pad>", "<bos>", "<eos>"], min_freq=1)
         else:
             self.vocab = vocab
         self.vocab_size = len(self.vocab)
