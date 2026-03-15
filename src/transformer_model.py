@@ -52,15 +52,12 @@ class Transformer(nn.Module):
         encoder = Encoder(nn.ModuleList(encoder_blocks))
         decoder = Decoder(nn.ModuleList(decoder_blocks))
 
-        projection_layer = ProjectionLayer(d_model, tgt_vocab_size)
-
         self.encoder = encoder
         self.decoder = decoder
         self.src_embed = src_embed
         self.tgt_embed = tgt_embed
         self.src_pos = src_pos
         self.tgt_pos = tgt_pos
-        self.projection_layer = projection_layer
         self.relu = nn.ReLU()
         self.unembedding_bias = nn.Parameter(torch.zeros(1, self.tgt_embed.embedding.weight.shape[0]))
 
