@@ -1,10 +1,15 @@
 from dataset import BHW2Dataset, BHW2Allin1Dataset
+from inference_routine import greedy_decode_b, beam_decode_b
+import sacrebleu
 from torch.utils.data import DataLoader
 import torchtext
 torchtext.disable_torchtext_deprecation_warning()
 import warnings
 warnings.filterwarnings("ignore")
 import torch
+from typing import Union
+import torch
+from tqdm import tqdm
 
 
 def create_decoder_causal_mask(batch_size, seq_len):
@@ -69,54 +74,64 @@ def create_dataloaders(path_to_data="../data", batch_size=32, device=torch.devic
     return train_loader, val_loader, test_loader
 
 
-from typing import Union
-import torch
-from tqdm import tqdm
-
-def train_epoch(model, loader, criterion, optimizer, device : Union[torch.device, str] ="cpu"):
+def train_epoch(model, loader, optimizer, criterion, scheduler, device = torch.device("cuda")):
     model.train()
     model.to(device)
     total_loss = 0
-    num_tokens = 0
-
-    for de, de_lengths, en, en_lenghts in tqdm(loader):
-        de_tokens = de[:, :de_lengths.max()].to(device)
-        en_tokens = en[:, :en_lenghts.max()].to(device)
-        # print(de_tokens.shape, en_tokens.shape)
+    numel = 0
+    for batch in loader:
         optimizer.zero_grad()
-        logits = model(de_tokens, en_tokens[:, :-1])
-        loss = criterion(logits.permute(0, 2, 1), en_tokens[:, 1:])
+        out = model.encode(batch["src"], batch["src_mask"])
+        out = model.decode(out, batch["src_mask"], batch["tgt"], batch["tgt_mask"])
+        out = model.project(out)
+        loss = criterion(out.transpose(1, 2), batch["label"])
         loss.backward()
         optimizer.step()
+        scheduler.step()
+        total_loss += loss.item() * batch["tgt"].shape[0]
+        numel += batch["tgt"].shape[0]
 
-        total_loss += loss.item() * len(en_tokens)
-        num_tokens += len(en_tokens)
+    return total_loss / numel
 
-    return total_loss / num_tokens
 
+def evaluate_b(model, val_loader, dataset, test=False, use_beam_search=False):
+    hyps = []
+    refs = []
+    model.eval()
+    for batch in val_loader:
+        if not use_beam_search:
+            hyp = greedy_decode_b(model, batch["src"], batch["src_mask"])
+        else:
+            hyp = beam_decode_b(model, batch["src"], batch["src_mask"])
+        for sequence in hyp:
+            hyps.append(
+                list(filter(lambda x : x > 3, sequence.tolist()))
+            )
+        if test:
+            continue
+        ref = batch["tgt"]
+        for sequence in ref:
+            refs.append(
+                list(filter(lambda x : x > 3, sequence.tolist()))
+            )
+    hyps = list(map(lambda x : dataset.idx2token(x), hyps))
+    if test:
+        return hyps
+    refs = list(map(lambda x : dataset.idx2token(x), refs))
+    return hyps, refs
 
 @torch.no_grad()
-def validate_epoch(model, loader, criterion, device : Union[torch.device, str] ="cpu"):
-    model.eval()
-    model.to(device)
-    total_loss = 0
-    num_tokens = 0
-
-    for de, de_lengths, en, en_lenghts in tqdm(loader):
-        de_tokens = de[:, :de_lengths.max()].to(device)
-        en_tokens = en[:, :en_lenghts.max()].to(device)
-        logits = model(de_tokens, en_tokens[:, :-1])
-        loss = criterion(logits.permute(0, 2, 1), en_tokens[:, 1:])
-
-        total_loss += loss.item() * len(en_tokens)
-        num_tokens += len(en_tokens)
-
-    return total_loss / num_tokens
+def validation_epoch(model, val_loader, dataset, use_beam_search=False):
+    hyps, refs = evaluate_b(model, val_loader, dataset, use_beam_search=use_beam_search)
+    hyps_for_bleu = list(map(lambda x : ' '.join(x), hyps))
+    refs_for_bleu = [list(map(lambda x : ' '.join(x), refs))]
+    bleu = sacrebleu.corpus_bleu(hyps_for_bleu, refs_for_bleu, tokenize="none", force=True)
+    return bleu.score
 
 
-def train(model, train_loader, val_loader, optimizer, scheduler, criterion, n_epochs : int = 1, device : Union[torch.device, str] = "cpu"):
+
+def train_tf(model, train_loader, val_loader, optimizer, criterion, scheduler, device, n_epochs=10):
     for i in range(1, n_epochs + 1):
-        train_loss = train_epoch(model, train_loader, criterion, optimizer, device=device)
-        val_loss = validate_epoch(model, val_loader, criterion, device=device)
-        scheduler.step()
-        print("Training epoch {} / {} : train_loss {}, val_loss {}".format(i, n_epochs, train_loss, val_loss))
+        train_loss = train_epoch(model, train_loader, optimizer, criterion, scheduler)
+        val_bleu = validation_epoch(model, val_loader, train_loader.dataset.en)
+        print(f"Epoch {i} / {n_epochs} : train x-entropy : {train_loss}, validation BLEU : {val_bleu}")
