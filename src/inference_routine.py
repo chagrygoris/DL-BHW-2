@@ -7,6 +7,7 @@ def causal_mask(seq_len, batch_size=1):
     return mask == 0
 
 
+@torch.no_grad()
 def greedy_decode_b(model, source, source_mask, max_len=80, device="cuda"):
     batch_size = source.size(0)
     encoder_output = model.encode(source, source_mask)
@@ -28,6 +29,7 @@ def greedy_decode_b(model, source, source_mask, max_len=80, device="cuda"):
     return decoder_input
 
 
+@torch.no_grad()
 def beam_decode_b(model, source, source_mask, beam_size=5, max_len=80, device="cuda", length_penalty_alpha=0.6):
     batch_size = source.size(0)
     k = beam_size

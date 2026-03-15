@@ -94,6 +94,7 @@ def train_epoch(model, loader, optimizer, criterion, scheduler, device = torch.d
     return total_loss / numel
 
 
+@torch.no_grad()
 def evaluate_b(model, val_loader, dataset, test=False, use_beam_search=False):
     hyps = []
     refs = []
