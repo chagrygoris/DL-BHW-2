@@ -92,15 +92,6 @@ class MultiHeadAttentionBlock(nn.Module):
         return self.w_o(x)
 
 
-class ResidualConnection(nn.Module):
-    def __init__(self, p: float) -> None:
-        super().__init__()
-        self.norm = LayerNorm()
-        self.dropout = nn.Dropout(p)
-
-    def forward(self, x, sublayer):
-        return x + self.dropout(sublayer(self.norm(x)))
-
 
 class EncoderBlock(nn.Module):
     def __init__(self, self_attention_block: MultiHeadAttentionBlock, ffn: FeedForwardBlock, p: float) -> None:
@@ -108,6 +99,7 @@ class EncoderBlock(nn.Module):
         self.self_attention_block = self_attention_block
         self.ffn = ffn
         self.norm = LayerNorm()
+        self.dropout = nn.Dropout()
 
     def forward(self, x, src_mask):
         x = x + self.dropout(self.self_attention_block(self.norm(x), self.norm(x), self.norm(x), src_mask))
